@@ -2,3 +2,5 @@ yfinance
 pandas
 seaborn
 matplotlib
+plotly
+numpy
