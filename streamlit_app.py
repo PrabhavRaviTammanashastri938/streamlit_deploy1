@@ -4,8 +4,6 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-import plotly.express as px
-import plotly.graph_objects as go
 
 
 
@@ -60,46 +58,38 @@ stock_data = load_sample_data()
 
 col1, col2 = st.columns(2)
 
-# Layered Bar Chart for AAPL
 with col1:
-    st.subheader("Layered Bar Chart: AAPL (Apple)")
-    aapl_data = stock_data[stock_data['Name'] == 'AAPL']
-    fig = px.bar(
-        aapl_data.melt(id_vars="Date", value_vars=['Open', 'Close', 'High', 'Low']),
-        x='Date',
-        y='value',
-        color='variable',
-        title="Layered Bar Chart: AAPL Stock Prices",
-        labels={"value": "Price", "variable": "Price Type"}
-    )
-    st.plotly_chart(fig, use_container_width=True)
+        st.subheader("Layered Bar Chart: AAPL (Apple)")
+        aapl_data = stock_data[stock_data['Name'] == 'AAPL']
+        fig = px.bar(
+            aapl_data, 
+            x='Date', 
+            y=['Open', 'Close', 'High', 'Low'], 
+            title="Layered Bar Chart: AAPL Stock Prices",
+            labels={"value": "Price", "variable": "Price Type"}
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-# Waterfall Chart for MMM
 with col2:
     st.subheader("Waterfall Chart: MMM (3M Company)")
     mmm_data = stock_data[stock_data['Name'] == 'MMM'].copy()
     mmm_data['Daily_Change'] = mmm_data['Close'] - mmm_data['Open']
     mmm_data['Cumulative_Change'] = mmm_data['Daily_Change'].cumsum()
 
-    fig = go.Figure()
-    for idx, row in mmm_data.iterrows():
-        color = "green" if row['Daily_Change'] > 0 else "red"
-        fig.add_trace(go.Bar(
-            x=[row['Date']],
-            y=[row['Cumulative_Change']],
-            marker_color=color,
-            name=row['Date']
-        ))
-    fig.update_layout(
-        title="MMM Cumulative Daily Changes",
-        xaxis_title="Date",
-        yaxis_title="Cumulative Change"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    fig, ax = plt.subplots(figsize=(10, 12))
+    ax.bar(
+            mmm_data['Date'], 
+            mmm_data['Cumulative_Change'], 
+            color=(mmm_data['Daily_Change'] > 0).map({True: 'green', False: 'red'})
+        )
+    ax.set_title("MMM Cumulative Daily Changes")
+    ax.set_ylabel("Cumulative Change")
+    ax.set_xlabel("Date")
+    st.pyplot(fig)
 
 col3, col4 = st.columns(2)
 
-# Donut Chart for CAT
+    # Pie Chart for CAT
 with col3:
     st.subheader("Donut Chart: CAT (Caterpillar)")
     cat_data = stock_data[stock_data['Name'] == 'CAT']
@@ -108,30 +98,30 @@ with col3:
     negative_changes = len(cat_data[cat_data['Price Change'] < 0])
     neutral_changes = len(cat_data[cat_data['Price Change'] == 0])
 
-    fig = go.Figure(
-        go.Pie(
-            labels=['Positive', 'Negative', 'Neutral'],
-            values=[positive_changes, negative_changes, neutral_changes],
-            hole=0.3
+    fig, ax = plt.subplots(figsize=(6, 6))
+    wedges, texts, autotexts = ax.pie(
+            [positive_changes, negative_changes, neutral_changes], 
+            labels=['Positive', 'Negative', 'Neutral'], 
+            autopct='%1.1f%%', startangle=90,
+            wedgeprops=dict(width=0.3)  # This creates the donut shape
         )
-    )
-    fig.update_layout(title="Donut Chart: CAT Stock Price Changes")
-    st.plotly_chart(fig, use_container_width=True)
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    st.pyplot(fig)
 
-# Scatter Plot for AMZN
-with col4:
-    st.subheader("Multi-Featured Scatter Plot: AMZN (Amazon)")
-    amzn_data = stock_data[stock_data['Name'] == 'AMZN']
-    fig = px.scatter(
-        amzn_data,
-        x='Volume',
-        y='Close',
-        size='High',
-        color='Open',
-        hover_data=['Low', 'Date'],
-        title="Scatter Plot: AMZN"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    # Multi-Featured Scatter Plot for AMZN
+    with col4:
+        st.subheader("Multi-Featured Scatter Plot: AMZN (Amazon)")
+        amzn_data = stock_data[stock_data['Name'] == 'AMZN']
+        fig = px.scatter(
+            amzn_data,
+            x='Volume',
+            y='Close',
+            size='High',
+            color='Open',
+            hover_data=['Low', 'Date'],
+            title="Scatter Plot: AMZN"
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 
 st.header("Fetch your Stock or HFT Dataset")
@@ -281,10 +271,10 @@ def is_suitable_for_hft(hft_data):
     - suitability: A string indicating whether the company is suitable for HFT ("Yes" or "No")
     """
     # Updated thresholds for the features to make more companies eligible for HFT
-    volume_threshold = 500  # Lower threshold for high volume (previously 1 million)
-    volatility_threshold = 0.01  # Lower volatility threshold (previously 0.02, now 1%)
-    rsi_threshold = 45  # Increase RSI threshold to 45 (previously 50)
-    price_change_threshold = 0.005  # Lower price change threshold (previously 1%, now 0.5%)
+    volume_threshold = 500000000  # Lower threshold for high volume (previously 1 million)
+    volatility_threshold = 10000  # Lower volatility threshold (previously 0.02, now 1%)
+    rsi_threshold = 55  # Increase RSI threshold to 45 (previously 50)
+    price_change_threshold = 4000  # Lower price change threshold (previously 1%, now 0.5%)
 
     # Check the average of relevant columns over a specific period (e.g., the last 5 days)
     recent_data = hft_data.tail(5)
@@ -304,7 +294,7 @@ def is_suitable_for_hft(hft_data):
 
 
 
-if st.sidebar.button("Fetch HFT Data"):
+if st.sidebar.button("Check HFT Status"):
 
     hft_data = load_hft_data(selected_ticker)
     
@@ -329,7 +319,22 @@ if st.sidebar.button("Fetch HFT Data"):
         ax.legend()
         st.pyplot(fig)
 
-        suitability = is_suitable_for_hft(hft_data)
-        st.write(f"### Is {selected_ticker} Suitable for HFT?")
-        st.write(f"The company is {'suitable' if suitability == 'Yes' else 'not suitable'} for High-Frequency Trading.")
+        # Compute relevant metrics for suitability
+        recent_data = hft_data.tail(5)
+        avg_volume = recent_data['Volume'].mean()
+        avg_volatility = recent_data['Volatility'].mean()
+        avg_rsi = recent_data['RSI'].mean()
+        avg_price_change = recent_data['Price_Change'].mean()
+        avg_momentum = recent_data['Momentum_5'].mean()
 
+        # Determine suitability for HFT
+        suitability = is_suitable_for_hft(hft_data)
+
+        # Display parameters and suitability result
+        st.write(f"### Suitability Analysis for {selected_ticker}")
+        st.table({
+            "Parameter": ["Average Volume", "Average Volatility", "Average RSI", "Average Price Change", "Average Momentum"],
+            "Value": [f"{avg_volume:.2f}", f"{avg_volatility:.4f}", f"{avg_rsi:.2f}", f"{avg_price_change:.4f}", f"{avg_momentum:.2f}"]
+        })
+        st.write(f"### Is {selected_ticker} Suitable for HFT?")
+        st.write(f"The company is **{'suitable' if suitability == 'Yes' else 'not suitable'}** for High-Frequency Trading.")
