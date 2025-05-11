@@ -260,7 +260,7 @@ elif page == "Chatbot":
 
         # Generate response from the model
         with st.spinner("Thinking..."):
-            response = openai.ChatCompletion.create(
+            response = openai.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant with expertise in stock trading and high-frequency trading."},
