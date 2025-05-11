@@ -260,14 +260,15 @@ elif page == "Chatbot":
 
         # Generate response from the model
         with st.spinner("Thinking..."):
-            response = openai.Completions.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant with expertise in stock trading and high-frequency trading."},
                     *st.session_state.chat_history
                 ]
             )
-            bot_response = response.choices[0].message['content']
+            bot_response = response.choices[0].message.content
+            st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
 
         # Show assistant's reply
         st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
