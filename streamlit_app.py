@@ -234,7 +234,15 @@ elif page == "Check HFT Status":
         st.markdown("### Last 5 Days Used for Evaluation")
         st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
 
-if "chat_history" not in st.session_state:
+elif page == "Chatbot":
+    import openai
+
+    st.title("📢 Ask the Stock Chatbot")
+
+    # Initialize OpenAI client with API key
+    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])
+
+    if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
     # Display chat history (both user and assistant messages)
