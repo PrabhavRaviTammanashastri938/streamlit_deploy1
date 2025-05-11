@@ -216,44 +216,62 @@ if page == "Main Dashboard":
 
     st.markdown("---")
 
-    # Aging bar chart (Accounts Receivable vs Payable)
-    st.subheader("Total Accounts Receivable and Payable Aging")
-    aging_data = pd.DataFrame({
-        'Category': ['Current', '1-30', '31-60', '61-90', '91+'],
-        'Receivable': [2.1, 1.5, 1.1, 0.9, 1.0],
-        'Payable': [1.2, 0.9, 0.7, 0.6, 0.5]
-    })
-    fig = px.bar(aging_data, x='Category', y=['Receivable', 'Payable'],
-                 barmode='group', title="Aging Analysis",
-                 labels={'value': 'Millions', 'variable': 'Type'})
-    st.plotly_chart(fig, use_container_width=True)
+    col_c1, col_c2 = st.columns(2)
 
-    # Working capital line chart
-    st.subheader("Net Working Capital vs Gross Working Capital")
-    capital_data = pd.DataFrame({
-        'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
-        'Net': numpy.random.randint(200, 700, 12),
-        'Gross': numpy.random.randint(300, 800, 12)
-    })
-    fig = px.line(capital_data, x='Month', y=['Net', 'Gross'], markers=True,
-                  labels={'value': 'Capital ($K)', 'variable': 'Capital Type'},
-                  title="Working Capital Trend")
-    st.plotly_chart(fig, use_container_width=True)
+    with col_c1:
+        st.subheader("Aging Bar Chart")
+        aging_data = pd.DataFrame({
+            'Category': ['Current', '1-30', '31-60', '61-90', '91+'],
+            'Receivable': [2.1, 1.5, 1.1, 0.9, 1.0],
+            'Payable': [1.2, 0.9, 0.7, 0.6, 0.5]
+        })
+        fig = px.bar(aging_data, x='Category', y=['Receivable', 'Payable'],
+                     barmode='group', title="Receivables vs Payables Aging",
+                     labels={'value': 'Millions', 'variable': 'Type'})
+        st.plotly_chart(fig, use_container_width=True, height=300)
 
-    # Profit & Loss summary stacked bar
-    st.subheader("Profit and Loss Summary")
-    profit_data = pd.DataFrame({
-        'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
-        'Revenue': numpy.random.randint(500, 1000, 12),
-        'COGS': numpy.random.randint(200, 500, 12),
-        'Profit': numpy.random.randint(100, 300, 12)
-    })
-    fig = px.bar(profit_data, x='Month',
-                 y=['Revenue', 'COGS', 'Profit'],
-                 title="Monthly P&L",
-                 labels={'value': 'Amount ($K)', 'variable': 'Type'},
-                 barmode='stack')
-    st.plotly_chart(fig, use_container_width=True)
+    with col_c2:
+        st.subheader("Donut Chart: CAT Price Movement")
+        cat_data = stock_data[stock_data['Name'] == 'CAT']
+        cat_data['Change'] = cat_data['Close'].diff().fillna(0)
+        pos = (cat_data['Change'] > 0).sum()
+        neg = (cat_data['Change'] < 0).sum()
+        neu = (cat_data['Change'] == 0).sum()
+        fig, ax = plt.subplots()
+        ax.pie([pos, neg, neu], labels=['Positive', 'Negative', 'Neutral'],
+               autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
+        ax.set_title("CAT Daily Changes")
+        st.pyplot(fig)
+
+    # Bottom row
+    col_c3, col_c4 = st.columns(2)
+
+    with col_c3:
+        st.subheader("Working Capital Line Chart")
+        capital_data = pd.DataFrame({
+            'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
+            'Net': np.random.randint(200, 700, 12),
+            'Gross': np.random.randint(300, 800, 12)
+        })
+        fig = px.line(capital_data, x='Month', y=['Net', 'Gross'], markers=True,
+                      labels={'value': 'Capital ($K)', 'variable': 'Capital Type'},
+                      title="Working Capital Trend")
+        st.plotly_chart(fig, use_container_width=True, height=300)
+
+    with col_c4:
+        st.subheader("Profit & Loss Summary")
+        profit_data = pd.DataFrame({
+            'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
+            'Revenue': np.random.randint(500, 1000, 12),
+            'COGS': np.random.randint(200, 500, 12),
+            'Profit': np.random.randint(100, 300, 12)
+        })
+        fig = px.bar(profit_data, x='Month',
+                     y=['Revenue', 'COGS', 'Profit'],
+                     title="Monthly P&L",
+                     labels={'value': 'Amount ($K)', 'variable': 'Type'},
+                     barmode='stack')
+        st.plotly_chart(fig, use_container_width=True, height=300)
 
 # Generate Dataset Page
 elif page == "Generate Dataset":
