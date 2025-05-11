@@ -10,7 +10,7 @@ import json
 import geopandas as gpd
 import openai
 
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = st.secrets["openai_api_key"]
 
 # Load data
 @st.cache_data
