@@ -260,15 +260,13 @@ elif page == "Chatbot":
 
         # Generate response from the model
         with st.spinner("Thinking..."):
-            response = openai.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant with expertise in stock trading and high-frequency trading."},
-                    *st.session_state.chat_history
-                ]
-            )
-            bot_response = response.choices[0].message.content
-            st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
+        response = openai.Completion.create(  # Using Completion.create() method for newer versions
+            model="gpt-3.5-turbo",  # Specify the model
+            prompt=" ".join([message["content"] for message in st.session_state.chat_history]),  # Creating a simple prompt
+            max_tokens=150,  # Set max token limit (you can adjust this)
+            temperature=0.7,  # Adjust temperature for response creativity
+        )
+
 
         # Show assistant's reply
         st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
