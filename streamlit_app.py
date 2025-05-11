@@ -44,7 +44,7 @@ available_tickers = [
 ]
 
 # Streamlit App
-st.title("Prabhav - HFT Stock Dashboard ")
+st.title("HFT Stock Dashboard ")
 
 # Sidebar inputs for date range and single ticker selection
 
