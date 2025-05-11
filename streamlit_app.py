@@ -113,7 +113,7 @@ def plot_india_map(hft_data):
 
 # Page Navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison"])
+page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison","Check HFT Status"])
 
 # Main Dashboard
 if page == "Main Dashboard":
@@ -204,4 +204,33 @@ elif page == "Line Chart Comparison":
         ax.legend()
         st.pyplot(fig)
 
+elif st.sidebar.button("Check HFT Status"):
+    hft_data = load_hft_data(selected_ticker)
+    if hft_data is not None:
+        st.write(f"### HFT Data for {selected_ticker}")
+        st.write(hft_data.head())
 
+        fig, ax = plt.subplots()
+        ax.plot(hft_data.index, hft_data['Close'], label='Close')
+        ax.plot(hft_data.index, hft_data['MA_5'], label='MA_5')
+        ax.plot(hft_data.index, hft_data['MA_20'], label='MA_20')
+        ax.set_title("Close & Moving Averages")
+        ax.legend()
+        st.pyplot(fig)
+
+        fig, ax = plt.subplots()
+        ax.plot(hft_data.index, hft_data['Volatility'], color='orange')
+        ax.set_title("Volatility Over Time")
+        st.pyplot(fig)
+
+        recent = hft_data.tail(5)
+        st.table({
+            "Parameter": ["Average Volume", "Average Volatility", "Average RSI", "Average Price Change", "Average Momentum"],
+            "Value": [f"{recent['Volume'].mean():.2f}", f"{recent['Volatility'].mean():.2f}",
+                      f"{recent['RSI'].mean():.2f}", f"{recent['Price_Change'].mean():.2f}",
+                      f"{recent['Momentum_5'].mean():.2f}"]
+        })
+
+        suitable = is_suitable_for_hft(hft_data)
+        st.write(f"### Is {selected_ticker} Suitable for HFT?")
+        st.write(f"The company is **{'suitable' if suitable == 'Yes' else 'not suitable'}** for High-Frequency Trading.")
