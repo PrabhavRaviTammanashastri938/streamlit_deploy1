@@ -118,53 +118,135 @@ def plot_india_map(hft_data):
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison","Check HFT Status", "Chatbot"])
 
-# Main Dashboard
+# # Main Dashboard
+# if page == "Main Dashboard":
+#     st.title("HFT Stock Dashboard")
+#     stock_data = load_sample_data()
+
+#     col1, col2 = st.columns(2)
+#     with col1:
+#         st.subheader("Layered Bar Chart: AAPL (Apple)")
+#         aapl_data = stock_data[stock_data['Name'] == 'AAPL']
+#         fig = px.bar(
+#             aapl_data, x='Date', y=['Open', 'Close', 'High', 'Low'],
+#             title="AAPL Stock Prices",
+#             labels={"value": "Price", "variable": "Price Type"}
+#         )
+#         st.plotly_chart(fig, use_container_width=True)
+
+#     with col2:
+#         st.subheader("Waterfall Chart: MMM (3M Company)")
+#         mmm_data = stock_data[stock_data['Name'] == 'MMM'].copy()
+#         mmm_data['Daily_Change'] = mmm_data['Close'] - mmm_data['Open']
+#         mmm_data['Cumulative_Change'] = mmm_data['Daily_Change'].cumsum()
+#         fig, ax = plt.subplots(figsize=(10, 6))
+#         ax.bar(mmm_data['Date'], mmm_data['Cumulative_Change'],
+#                color=(mmm_data['Daily_Change'] > 0).map({True: 'green', False: 'red'}))
+#         ax.set_title("MMM Cumulative Daily Changes")
+#         st.pyplot(fig)
+
+#     col3, col4 = st.columns(2)
+#     with col3:
+#         st.subheader("Donut Chart: CAT (Caterpillar)")
+#         cat_data = stock_data[stock_data['Name'] == 'CAT']
+#         cat_data['Price Change'] = cat_data['Close'].diff().fillna(0)
+#         pos, neg, neu = len(cat_data[cat_data['Price Change'] > 0]), len(cat_data[cat_data['Price Change'] < 0]), len(cat_data[cat_data['Price Change'] == 0])
+#         fig, ax = plt.subplots()
+#         ax.pie([pos, neg, neu], labels=['Positive', 'Negative', 'Neutral'], autopct='%1.1f%%',
+#                startangle=90, wedgeprops=dict(width=0.3))
+#         ax.axis('equal')
+#         st.pyplot(fig)
+
+#     with col4:
+#         st.subheader("Scatter Plot: AMZN (Amazon)")
+#         amzn_data = stock_data[stock_data['Name'] == 'AMZN']
+#         fig = px.scatter(
+#             amzn_data, x='Volume', y='Close', size='High', color='Open',
+#             hover_data=['Low', 'Date'], title="Scatter Plot: AMZN"
+#         )
+#         st.plotly_chart(fig, use_container_width=True)
+
 if page == "Main Dashboard":
-    st.title("HFT Stock Dashboard")
-    stock_data = load_sample_data()
+    st.title("📊 HFT Stock Dashboard")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Layered Bar Chart: AAPL (Apple)")
-        aapl_data = stock_data[stock_data['Name'] == 'AAPL']
-        fig = px.bar(
-            aapl_data, x='Date', y=['Open', 'Close', 'High', 'Low'],
-            title="AAPL Stock Prices",
-            labels={"value": "Price", "variable": "Price Type"}
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    stock_data = load_sample_data()  # Make sure this function returns data with 'Date', 'Open', 'Close', 'High', 'Low', 'Volume', 'Name'
 
-    with col2:
-        st.subheader("Waterfall Chart: MMM (3M Company)")
-        mmm_data = stock_data[stock_data['Name'] == 'MMM'].copy()
-        mmm_data['Daily_Change'] = mmm_data['Close'] - mmm_data['Open']
-        mmm_data['Cumulative_Change'] = mmm_data['Daily_Change'].cumsum()
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.bar(mmm_data['Date'], mmm_data['Cumulative_Change'],
-               color=(mmm_data['Daily_Change'] > 0).map({True: 'green', False: 'red'}))
-        ax.set_title("MMM Cumulative Daily Changes")
-        st.pyplot(fig)
+    # Top KPIs
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    with kpi1:
+        st.metric("Total Accounts Receivable", "$6,621,280", "+4.2%")
+    with kpi2:
+        st.metric("Total Accounts Payable", "$1,630,270", "-2.1%")
+    with kpi3:
+        st.metric("Equity Ratio", "75.38%")
+    with kpi4:
+        st.metric("Debt Equity", "1.10%")
 
-    col3, col4 = st.columns(2)
-    with col3:
-        st.subheader("Donut Chart: CAT (Caterpillar)")
-        cat_data = stock_data[stock_data['Name'] == 'CAT']
-        cat_data['Price Change'] = cat_data['Close'].diff().fillna(0)
-        pos, neg, neu = len(cat_data[cat_data['Price Change'] > 0]), len(cat_data[cat_data['Price Change'] < 0]), len(cat_data[cat_data['Price Change'] == 0])
+    st.markdown("---")
+
+    # Gauge-like donut charts using matplotlib
+    col1, col2, col3, col4 = st.columns(4)
+
+    def draw_gauge(label, value, max_val):
         fig, ax = plt.subplots()
-        ax.pie([pos, neg, neu], labels=['Positive', 'Negative', 'Neutral'], autopct='%1.1f%%',
-               startangle=90, wedgeprops=dict(width=0.3))
-        ax.axis('equal')
-        st.pyplot(fig)
+        size = 0.3
+        vals = [value, max_val - value]
+        ax.pie(vals, radius=1, colors=['#3498db', '#ecf0f1'], startangle=90,
+               counterclock=False, wedgeprops=dict(width=size))
+        ax.text(0, 0, f"{value}", ha='center', va='center', fontsize=12)
+        ax.set(aspect="equal")
+        ax.set_title(label)
+        return fig
 
+    with col1:
+        st.pyplot(draw_gauge("Current Ratio", 1.8, 5))
+    with col2:
+        st.pyplot(draw_gauge("DSI (Days)", 10, 31))
+    with col3:
+        st.pyplot(draw_gauge("DSO (Days)", 7, 31))
     with col4:
-        st.subheader("Scatter Plot: AMZN (Amazon)")
-        amzn_data = stock_data[stock_data['Name'] == 'AMZN']
-        fig = px.scatter(
-            amzn_data, x='Volume', y='Close', size='High', color='Open',
-            hover_data=['Low', 'Date'], title="Scatter Plot: AMZN"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        st.pyplot(draw_gauge("DPO (Days)", 28, 31))
+
+    st.markdown("---")
+
+    # Aging bar chart (Accounts Receivable vs Payable)
+    st.subheader("Total Accounts Receivable and Payable Aging")
+    aging_data = pd.DataFrame({
+        'Category': ['Current', '1-30', '31-60', '61-90', '91+'],
+        'Receivable': [2.1, 1.5, 1.1, 0.9, 1.0],
+        'Payable': [1.2, 0.9, 0.7, 0.6, 0.5]
+    })
+    fig = px.bar(aging_data, x='Category', y=['Receivable', 'Payable'],
+                 barmode='group', title="Aging Analysis",
+                 labels={'value': 'Millions', 'variable': 'Type'})
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Working capital line chart
+    st.subheader("Net Working Capital vs Gross Working Capital")
+    capital_data = pd.DataFrame({
+        'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
+        'Net': np.random.randint(200, 700, 12),
+        'Gross': np.random.randint(300, 800, 12)
+    })
+    fig = px.line(capital_data, x='Month', y=['Net', 'Gross'], markers=True,
+                  labels={'value': 'Capital ($K)', 'variable': 'Capital Type'},
+                  title="Working Capital Trend")
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Profit & Loss summary stacked bar
+    st.subheader("Profit and Loss Summary")
+    profit_data = pd.DataFrame({
+        'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
+        'Revenue': np.random.randint(500, 1000, 12),
+        'COGS': np.random.randint(200, 500, 12),
+        'Profit': np.random.randint(100, 300, 12)
+    })
+    fig = px.bar(profit_data, x='Month',
+                 y=['Revenue', 'COGS', 'Profit'],
+                 title="Monthly P&L",
+                 labels={'value': 'Amount ($K)', 'variable': 'Type'},
+                 barmode='stack')
+    st.plotly_chart(fig, use_container_width=True)
 
 # Generate Dataset Page
 elif page == "Generate Dataset":
