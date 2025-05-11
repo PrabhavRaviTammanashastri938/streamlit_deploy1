@@ -235,7 +235,12 @@ elif page == "Check HFT Status":
         st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
 
 elif page == "Chatbot":
+    import openai
+
     st.title("📢 Ask the Stock Chatbot")
+
+    # Initialize OpenAI client with API key
+    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -243,11 +248,12 @@ elif page == "Chatbot":
     user_input = st.chat_input("Ask me anything about stocks or HFT...")
     if user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})
+
         with st.chat_message("user"):
             st.markdown(user_input)
 
         with st.spinner("Thinking..."):
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant with expertise in stock trading and high-frequency trading."},
@@ -256,6 +262,8 @@ elif page == "Chatbot":
             )
             bot_response = response.choices[0].message.content
             st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
+
             with st.chat_message("assistant"):
                 st.markdown(bot_response)
+
 
