@@ -240,11 +240,17 @@ elif page == "Chatbot":
     st.title("📢 Ask the Stock Chatbot")
 
     # Initialize OpenAI client with API key
-    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])
+    openai.api_key = st.secrets["openai_api_key"]
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
+    # Display chat history (both user and assistant messages)
+    for message in st.session_state.chat_history:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # User input section
     user_input = st.chat_input("Ask me anything about stocks or HFT...")
     if user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})
@@ -252,17 +258,21 @@ elif page == "Chatbot":
         with st.chat_message("user"):
             st.markdown(user_input)
 
+        # Generate response from the model
         with st.spinner("Thinking..."):
-            response = client.chat.completions.create(
+            response = openai.Completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant with expertise in stock trading and high-frequency trading."},
                     *st.session_state.chat_history
                 ]
             )
-            bot_response = response.choices[0].message.content
-            st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
+            bot_response = response.choices[0].message['content']
 
-            with st.chat_message("assistant"):
-                st.markdown(bot_response)
+        # Show assistant's reply
+        st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
+
+        with st.chat_message("assistant"):
+            st.markdown(bot_response)
+
 
