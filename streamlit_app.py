@@ -186,7 +186,7 @@ if page == "Main Dashboard":
     st.markdown("---")
 
     # Gauge-like donut charts using matplotlib
-    col1, col2, col3, col4 = st.columns(4)
+    #col1, col2, col3, col4 = st.columns(4)
 
     def draw_gauge(label, value, max_val):
         
