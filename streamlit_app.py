@@ -235,17 +235,13 @@ elif page == "Check HFT Status":
         st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
 
 elif page == "Chatbot":
-    import openai
-
     st.title("📢 Ask the Stock Chatbot")
-
-    # Initialize OpenAI client with API key
-    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-for message in st.session_state.chat_history:
+    # Display chat history
+    for message in st.session_state.chat_history:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
