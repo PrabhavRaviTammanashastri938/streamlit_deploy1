@@ -189,24 +189,30 @@ if page == "Main Dashboard":
     col1, col2, col3, col4 = st.columns(4)
 
     def draw_gauge(label, value, max_val):
-        fig, ax = plt.subplots()
-        size = 0.3
+        
+        fig, ax = plt.subplots(figsize=(2, 2))  # Smaller square size
         vals = [value, max_val - value]
         ax.pie(vals, radius=1, colors=['#3498db', '#ecf0f1'], startangle=90,
-               counterclock=False, wedgeprops=dict(width=size))
-        ax.text(0, 0, f"{value}", ha='center', va='center', fontsize=12)
+               counterclock=False, wedgeprops=dict(width=0.3))
+        ax.text(0, 0, f"{value}", ha='center', va='center', fontsize=9)
         ax.set(aspect="equal")
-        ax.set_title(label)
+        ax.set_title(label, fontsize=9)
         return fig
 
-    with col1:
-        st.pyplot(draw_gauge("Current Ratio", 1.8, 5))
-    with col2:
-        st.pyplot(draw_gauge("DSI (Days)", 10, 31))
-    with col3:
-        st.pyplot(draw_gauge("DSO (Days)", 7, 31))
-    with col4:
-        st.pyplot(draw_gauge("DPO (Days)", 28, 31))
+    g_col1, g_col2 = st.columns(2)
+    with g_col1:
+        g1, g2 = st.columns(2)
+        with g1:
+            st.pyplot(draw_gauge("Current Ratio", 1.8, 5))
+        with g2:
+            st.pyplot(draw_gauge("DSI (Days)", 10, 31))
+            
+    with g_col2:
+        g3, g4 = st.columns(2)
+        with g3:
+            st.pyplot(draw_gauge("DSO (Days)", 7, 31))
+        with g4:
+            st.pyplot(draw_gauge("DPO (Days)", 28, 31))
 
     st.markdown("---")
 
