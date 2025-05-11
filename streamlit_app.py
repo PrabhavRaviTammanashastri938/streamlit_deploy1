@@ -225,8 +225,8 @@ if page == "Main Dashboard":
     st.subheader("Net Working Capital vs Gross Working Capital")
     capital_data = pd.DataFrame({
         'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
-        'Net': np.random.randint(200, 700, 12),
-        'Gross': np.random.randint(300, 800, 12)
+        'Net': numpy.random.randint(200, 700, 12),
+        'Gross': numpy.random.randint(300, 800, 12)
     })
     fig = px.line(capital_data, x='Month', y=['Net', 'Gross'], markers=True,
                   labels={'value': 'Capital ($K)', 'variable': 'Capital Type'},
@@ -237,9 +237,9 @@ if page == "Main Dashboard":
     st.subheader("Profit and Loss Summary")
     profit_data = pd.DataFrame({
         'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
-        'Revenue': np.random.randint(500, 1000, 12),
-        'COGS': np.random.randint(200, 500, 12),
-        'Profit': np.random.randint(100, 300, 12)
+        'Revenue': numpy.random.randint(500, 1000, 12),
+        'COGS': numpy.random.randint(200, 500, 12),
+        'Profit': numpy.random.randint(100, 300, 12)
     })
     fig = px.bar(profit_data, x='Month',
                  y=['Revenue', 'COGS', 'Profit'],
