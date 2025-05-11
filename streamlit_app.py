@@ -4,6 +4,10 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
+import plotly.graph_objects as go
+from matplotlib_venn import venn2
+import json
+import geopandas as gpd
 
 # Load data
 @st.cache_data
@@ -51,11 +55,67 @@ available_tickers = [
     'PG', 'TRV', 'UTX', 'UNH', 'VZ', 'WMT', 'GOOGL', 'AMZN', 'AABA'
 ]
 
+# Preprocess HFT Data for India Map
+@st.cache_data
+def preprocess_hft_data_for_map(hft_data):
+    state_attribute = hft_data.groupby('State')['Volume'].sum().reset_index()
+    return state_attribute
+
+# Venn Diagram Function
+def plot_venn(hft_data):
+    vol_set = set(hft_data[hft_data['Volume'] > 1000000].index)
+    vola_set = set(hft_data[hft_data['Volatility'] > 0.02].index)
+    
+    fig, ax = plt.subplots(figsize=(8, 8))
+    venn2([vol_set, vola_set], set_labels=('Volume > 1M', 'Volatility > 2%'))
+    st.pyplot(fig)
+
+# Semi-Circle Chart Function
+def plot_semi_circle_chart(hft_data):
+    volume_sum = hft_data['Volume'].sum()
+
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number+delta",
+        value=volume_sum,
+        delta={'reference': 1000000},
+        gauge={'shape': "semi"},
+        title={'text': "Total Volume in HFT Dataset"}
+    ))
+
+    st.plotly_chart(fig)
+
+# India Map Function
+def plot_india_map(hft_data):
+    india_geojson_url = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/india-states.geojson"
+    india_geojson = json.loads(open(india_geojson_url).read())
+
+    state_data_map = dict(zip(hft_data['State'], hft_data['Volume']))
+
+    for feature in india_geojson['features']:
+        state_name = feature['properties']['name']
+        if state_name in state_data_map:
+            feature['properties']['hft_volume'] = state_data_map[state_name]
+        else:
+            feature['properties']['hft_volume'] = 0
+
+    fig = px.choropleth(
+        geojson=india_geojson,
+        locations=[feature['properties']['name'] for feature in india_geojson['features']],
+        color=[feature['properties']['hft_volume'] for feature in india_geojson['features']],
+        hover_name=[feature['properties']['name'] for feature in india_geojson['features']],
+        hover_data=['hft_volume'],
+        color_continuous_scale="Viridis",
+        labels={"hft_volume": "HFT Volume by State"},
+        title="HFT Volume Across Indian States"
+    )
+    fig.update_geos(fitbounds="locations")
+    st.plotly_chart(fig)
+
 # Page Navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison"])
+page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison", "Venn Diagram & Semi-Circle Charts", "India Map"])
 
-# Page 1 - Main Dashboard
+# Main Dashboard
 if page == "Main Dashboard":
     st.title("HFT Stock Dashboard")
     stock_data = load_sample_data()
@@ -103,7 +163,7 @@ if page == "Main Dashboard":
         )
         st.plotly_chart(fig, use_container_width=True)
 
-# Page 2 - Generate Dataset (with toggle for date filtering)
+# Generate Dataset Page
 elif page == "Generate Dataset":
     st.title("Generate Dataset from Yahoo Finance")
 
@@ -123,7 +183,7 @@ elif page == "Generate Dataset":
         st.dataframe(data.head())
         st.download_button("Download CSV", data.to_csv().encode(), f"{selected_ticker}_data.csv", mime='text/csv')
 
-# Page 3 - Line Chart Comparison
+# Line Chart Comparison Page
 elif page == "Line Chart Comparison":
     st.title("Line Chart Comparison of Multiple Companies")
     stock_data = load_sample_data()
@@ -143,3 +203,25 @@ elif page == "Line Chart Comparison":
         ax.set_ylabel(metric)
         ax.legend()
         st.pyplot(fig)
+
+# Venn Diagram & Semi-Circle Charts Page
+elif page == "Venn Diagram & Semi-Circle Charts":
+    st.title("Venn Diagram & Semi-Circle Charts for HFT Data")
+    hft_data = load_hft_data("AAPL")  # Use an example ticker like 'AAPL'
+
+    if hft_data is not None:
+        st.subheader("Venn Diagram: Volume vs Volatility")
+        plot_venn(hft_data)
+
+        st.subheader("Semi-Circle Chart: Total Volume")
+        plot_semi_circle_chart(hft_data)
+
+# India Map Page
+elif page == "India Map":
+    st.title("Interactive India Map with HFT Attributes")
+
+    hft_data = load_hft_data("AAPL")  # Use an example ticker like 'AAPL'
+    
+    if hft_data is not None:
+        hft_state_data = preprocess_hft_data_for_map(hft_data)
+        plot_india_map(hft_state_data)
