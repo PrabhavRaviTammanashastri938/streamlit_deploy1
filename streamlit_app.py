@@ -9,7 +9,7 @@ from matplotlib_venn import venn2
 import json
 import geopandas as gpd
 import openai
-import numpy as np
+import numpy
 
 openai.api_key = st.secrets["openai_api_key"]
 
@@ -48,36 +48,9 @@ def is_suitable_for_hft(hft_data):
     avg_volatility = recent_data['Volatility'].mean()
     avg_rsi = recent_data['RSI'].mean()
     avg_price_change = recent_data['Price_Change'].mean()
-    with st.spinner("Analyzing with AI..."):
-            ai_explanation = get_hft_explanation(avg_volume, avg_volatility, avg_rsi, avg_price_change,  suitability)
-
-        # Display AI-generated explanation
-        st.subheader("AI-Powered Explanation")
-        st.write(ai_explanation)
     if avg_volume > volume_threshold and avg_volatility > volatility_threshold and avg_rsi < rsi_threshold and avg_price_change > price_change_threshold:
         return "Yes"
     return "No"
-
-def get_hft_explanation(avg_volume, avg_volatility, avg_rsi, avg_price_change, avg_momentum, suitability):
-    prompt = f"""
-    The following are the computed metrics for High-Frequency Trading (HFT) Suitability:
-
-    - **Average Volume:** {avg_volume}
-    - **Average Volatility:** {avg_volatility}
-    - **Average RSI:** {avg_rsi}
-    - **Average Price Change:** {avg_price_change}
-
-    The stock is determined to be **{'suitable' if suitability == 'Yes' else 'not suitable'}** for High-Frequency Trading.
-
-    Please provide an explanation of these factors, their importance, and why the stock is or isn't suitable for HFT.
-    """
-
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    return response.choices[0].message.content 
 
 # Available tickers
 available_tickers = [
@@ -197,7 +170,7 @@ page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Ch
 if page == "Main Dashboard":
     st.title("📊 HFT Stock Dashboard")
 
-    stock_data = load_sample_data()
+    stock_data = load_sample_data()  # Make sure this function returns data with 'Date', 'Open', 'Close', 'High', 'Low', 'Volume', 'Name'
 
     # Top KPIs
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
@@ -210,94 +183,71 @@ if page == "Main Dashboard":
     with kpi4:
         st.metric("Debt Equity", "1.10%")
 
-    st.markdown("")
+    st.markdown("---")
 
-    # Donut-style gauges using matplotlib
+    # Gauge-like donut charts using matplotlib
+    col1, col2, col3, col4 = st.columns(4)
+
     def draw_gauge(label, value, max_val):
-        
-        fig, ax = plt.subplots(figsize=(2, 2))  # Smaller square size
+        fig, ax = plt.subplots()
+        size = 0.3
         vals = [value, max_val - value]
         ax.pie(vals, radius=1, colors=['#3498db', '#ecf0f1'], startangle=90,
-               counterclock=False, wedgeprops=dict(width=0.3))
-        ax.text(0, 0, f"{value}", ha='center', va='center', fontsize=9)
+               counterclock=False, wedgeprops=dict(width=size))
+        ax.text(0, 0, f"{value}", ha='center', va='center', fontsize=12)
         ax.set(aspect="equal")
-        ax.set_title(label, fontsize=9)
+        ax.set_title(label)
         return fig
 
-    g_col1, g_col2 = st.columns(2)
-    with g_col1:
-        g1, g2 = st.columns(2)
-        with g1:
-            st.pyplot(draw_gauge("Current Ratio", 1.8, 5))
-        with g2:
-            st.pyplot(draw_gauge("DSI (Days)", 10, 31))
-        
-    with g_col2:
-        g3, g4 = st.columns(2)
-        with g3:
-            st.pyplot(draw_gauge("DSO (Days)", 7, 31))
-        with g4:
-            st.pyplot(draw_gauge("DPO (Days)", 28, 31))
+    with col1:
+        st.pyplot(draw_gauge("Current Ratio", 1.8, 5))
+    with col2:
+        st.pyplot(draw_gauge("DSI (Days)", 10, 31))
+    with col3:
+        st.pyplot(draw_gauge("DSO (Days)", 7, 31))
+    with col4:
+        st.pyplot(draw_gauge("DPO (Days)", 28, 31))
 
     st.markdown("---")
 
-    # Three charts side-by-side
-    col_c1, col_c2 = st.columns(2)
+    # Aging bar chart (Accounts Receivable vs Payable)
+    st.subheader("Total Accounts Receivable and Payable Aging")
+    aging_data = pd.DataFrame({
+        'Category': ['Current', '1-30', '31-60', '61-90', '91+'],
+        'Receivable': [2.1, 1.5, 1.1, 0.9, 1.0],
+        'Payable': [1.2, 0.9, 0.7, 0.6, 0.5]
+    })
+    fig = px.bar(aging_data, x='Category', y=['Receivable', 'Payable'],
+                 barmode='group', title="Aging Analysis",
+                 labels={'value': 'Millions', 'variable': 'Type'})
+    st.plotly_chart(fig, use_container_width=True)
 
-    with col_c1:
-        st.subheader("Aging Bar Chart")
-        aging_data = pd.DataFrame({
-            'Category': ['Current', '1-30', '31-60', '61-90', '91+'],
-            'Receivable': [2.1, 1.5, 1.1, 0.9, 1.0],
-            'Payable': [1.2, 0.9, 0.7, 0.6, 0.5]
-        })
-        fig = px.bar(aging_data, x='Category', y=['Receivable', 'Payable'],
-                     barmode='group', title="Receivables vs Payables Aging",
-                     labels={'value': 'Millions', 'variable': 'Type'})
-        st.plotly_chart(fig, use_container_width=True, height=300)
+    # Working capital line chart
+    st.subheader("Net Working Capital vs Gross Working Capital")
+    capital_data = pd.DataFrame({
+        'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
+        'Net': numpy.random.randint(200, 700, 12),
+        'Gross': numpy.random.randint(300, 800, 12)
+    })
+    fig = px.line(capital_data, x='Month', y=['Net', 'Gross'], markers=True,
+                  labels={'value': 'Capital ($K)', 'variable': 'Capital Type'},
+                  title="Working Capital Trend")
+    st.plotly_chart(fig, use_container_width=True)
 
-    with col_c2:
-        st.subheader("Donut Chart: CAT Price Movement")
-        cat_data = stock_data[stock_data['Name'] == 'CAT']
-        cat_data['Change'] = cat_data['Close'].diff().fillna(0)
-        pos = (cat_data['Change'] > 0).sum()
-        neg = (cat_data['Change'] < 0).sum()
-        neu = (cat_data['Change'] == 0).sum()
-        fig, ax = plt.subplots()
-        ax.pie([pos, neg, neu], labels=['Positive', 'Negative', 'Neutral'],
-               autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
-        ax.set_title("CAT Daily Changes")
-        st.pyplot(fig)
-
-    # Bottom row
-    col_c3, col_c4 = st.columns(2)
-
-    with col_c3:
-        st.subheader("Working Capital Line Chart")
-        capital_data = pd.DataFrame({
-            'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
-            'Net': np.random.randint(200, 700, 12),
-            'Gross': np.random.randint(300, 800, 12)
-        })
-        fig = px.line(capital_data, x='Month', y=['Net', 'Gross'], markers=True,
-                      labels={'value': 'Capital ($K)', 'variable': 'Capital Type'},
-                      title="Working Capital Trend")
-        st.plotly_chart(fig, use_container_width=True, height=300)
-
-    with col_c4:
-        st.subheader("Profit & Loss Summary")
-        profit_data = pd.DataFrame({
-            'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
-            'Revenue': np.random.randint(500, 1000, 12),
-            'COGS': np.random.randint(200, 500, 12),
-            'Profit': np.random.randint(100, 300, 12)
-        })
-        fig = px.bar(profit_data, x='Month',
-                     y=['Revenue', 'COGS', 'Profit'],
-                     title="Monthly P&L",
-                     labels={'value': 'Amount ($K)', 'variable': 'Type'},
-                     barmode='stack')
-        st.plotly_chart(fig, use_container_width=True, height=300)
+    # Profit & Loss summary stacked bar
+    st.subheader("Profit and Loss Summary")
+    profit_data = pd.DataFrame({
+        'Month': pd.date_range(start='2024-01-01', periods=12, freq='M').strftime('%b'),
+        'Revenue': numpy.random.randint(500, 1000, 12),
+        'COGS': numpy.random.randint(200, 500, 12),
+        'Profit': numpy.random.randint(100, 300, 12)
+    })
+    fig = px.bar(profit_data, x='Month',
+                 y=['Revenue', 'COGS', 'Profit'],
+                 title="Monthly P&L",
+                 labels={'value': 'Amount ($K)', 'variable': 'Type'},
+                 barmode='stack')
+    st.plotly_chart(fig, use_container_width=True)
 
 # Generate Dataset Page
 elif page == "Generate Dataset":
@@ -357,9 +307,6 @@ elif page == "Check HFT Status":
         hft_df['RSI'] = (100 - (100 / (1 + hft_df['Close'].pct_change().rolling(14).mean())))  # Approx RSI
         hft_df['Price_Change'] = hft_df['Close'].diff()
 
-        st.markdown("### Last 5 Days Used for Evaluation")
-        st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
-
         result = is_suitable_for_hft(hft_df)
         st.subheader(f"HFT Suitability for {selected_ticker}:")
         if result == "Yes":
@@ -367,9 +314,8 @@ elif page == "Check HFT Status":
         else:
             st.error("No, not suitable for HFT ❌")
 
-        
-
-        
+        st.markdown("### Last 5 Days Used for Evaluation")
+        st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
 
 elif page == "Chatbot":
     import openai
