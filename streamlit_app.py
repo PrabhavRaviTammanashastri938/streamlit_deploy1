@@ -315,6 +315,8 @@ elif page == "Line Chart Comparison":
         st.pyplot(fig)
 
 elif page == "Check HFT Status":
+    import openai
+    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])
     st.title("Check HFT Suitability Status")
 
     stock_data = load_sample_data()
