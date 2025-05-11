@@ -168,7 +168,6 @@ page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Ch
 #         st.plotly_chart(fig, use_container_width=True)
 
 if page == "Main Dashboard":
-    st.set_page_config(layout="wide")
     st.title("📊 HFT Stock Dashboard")
 
     stock_data = load_sample_data()
