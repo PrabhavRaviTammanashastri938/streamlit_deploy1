@@ -113,7 +113,7 @@ def plot_india_map(hft_data):
 
 # Page Navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison","Check HFT Status"])
+page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison","Check HFT Status", "Chatbot"])
 
 # Main Dashboard
 if page == "Main Dashboard":
@@ -230,3 +230,29 @@ elif page == "Check HFT Status":
 
         st.markdown("### Last 5 Days Used for Evaluation")
         st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
+
+elif page == "Chatbot":
+    st.title("📢 Ask the Stock Chatbot")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    user_input = st.chat_input("Ask me anything about stocks or HFT...")
+    if user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        with st.spinner("Thinking..."):
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant with expertise in stock trading and high-frequency trading."},
+                    *st.session_state.chat_history
+                ]
+            )
+            bot_response = response.choices[0].message.content
+            st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
+            with st.chat_message("assistant"):
+                st.markdown(bot_response)
+
