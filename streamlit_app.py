@@ -223,7 +223,10 @@ elif page == "Check HFT Status":
 
         result = is_suitable_for_hft(hft_df)
         st.subheader(f"HFT Suitability for {selected_ticker}:")
-        st.success("Yes, suitable for HFT 🚀") if result == "Yes" else st.error("No, not suitable for HFT ❌")
+        if result == "Yes":
+            st.success("Yes, suitable for HFT 🚀")
+        else:
+            st.error("No, not suitable for HFT ❌")
 
         st.markdown("### Last 5 Days Used for Evaluation")
         st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
