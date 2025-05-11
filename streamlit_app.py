@@ -48,6 +48,12 @@ def is_suitable_for_hft(hft_data):
     avg_volatility = recent_data['Volatility'].mean()
     avg_rsi = recent_data['RSI'].mean()
     avg_price_change = recent_data['Price_Change'].mean()
+    with st.spinner("Analyzing with AI..."):
+            ai_explanation = get_hft_explanation(avg_volume, avg_volatility, avg_rsi, avg_price_change,  suitability)
+
+        # Display AI-generated explanation
+        st.subheader("AI-Powered Explanation")
+        st.write(ai_explanation)
     if avg_volume > volume_threshold and avg_volatility > volatility_threshold and avg_rsi < rsi_threshold and avg_price_change > price_change_threshold:
         return "Yes"
     return "No"
@@ -351,6 +357,9 @@ elif page == "Check HFT Status":
         hft_df['RSI'] = (100 - (100 / (1 + hft_df['Close'].pct_change().rolling(14).mean())))  # Approx RSI
         hft_df['Price_Change'] = hft_df['Close'].diff()
 
+        st.markdown("### Last 5 Days Used for Evaluation")
+        st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
+
         result = is_suitable_for_hft(hft_df)
         st.subheader(f"HFT Suitability for {selected_ticker}:")
         if result == "Yes":
@@ -358,15 +367,9 @@ elif page == "Check HFT Status":
         else:
             st.error("No, not suitable for HFT ❌")
 
-        st.markdown("### Last 5 Days Used for Evaluation")
-        st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
+        
 
-        with st.spinner("Analyzing with AI..."):
-            ai_explanation = get_hft_explanation(avg_volume, avg_volatility, avg_rsi, avg_price_change,  suitability)
-
-        # Display AI-generated explanation
-        st.subheader("AI-Powered Explanation")
-        st.write(ai_explanation)
+        
 
 elif page == "Chatbot":
     import openai
