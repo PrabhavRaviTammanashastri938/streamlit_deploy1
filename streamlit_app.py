@@ -9,7 +9,7 @@ from matplotlib_venn import venn2
 import json
 import geopandas as gpd
 import openai
-import numpy
+import numpy as np
 
 openai.api_key = st.secrets["openai_api_key"]
 
