@@ -168,7 +168,7 @@ page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Ch
 #         st.plotly_chart(fig, use_container_width=True)
 
 if page == "Main Dashboard":
-    st.title("📊 HFT Stock Dashboard")
+    st.title("📊 21UG107 -  HFT Stock Dashboard")
 
     stock_data = load_sample_data()  # Make sure this function returns data with 'Date', 'Open', 'Close', 'High', 'Low', 'Volume', 'Name'
 
@@ -275,7 +275,7 @@ if page == "Main Dashboard":
 
 # Generate Dataset Page
 elif page == "Generate Dataset":
-    st.title("Generate Dataset from Yahoo Finance")
+    st.title("Company Dataset")
 
     selected_ticker = st.selectbox("Select Ticker", available_tickers, index=available_tickers.index("AAPL"))
     enable_date_filter = st.toggle("Enable Date Filter")
