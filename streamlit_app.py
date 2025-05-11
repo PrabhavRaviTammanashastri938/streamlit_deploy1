@@ -113,7 +113,7 @@ def plot_india_map(hft_data):
 
 # Page Navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison", "Venn Diagram & Semi-Circle Charts", "India Map"])
+page = st.sidebar.radio("Go to", ["Main Dashboard", "Generate Dataset", "Line Chart Comparison"])
 
 # Main Dashboard
 if page == "Main Dashboard":
@@ -204,24 +204,4 @@ elif page == "Line Chart Comparison":
         ax.legend()
         st.pyplot(fig)
 
-# Venn Diagram & Semi-Circle Charts Page
-elif page == "Venn Diagram & Semi-Circle Charts":
-    st.title("Venn Diagram & Semi-Circle Charts for HFT Data")
-    hft_data = load_hft_data("AAPL")  # Use an example ticker like 'AAPL'
 
-    if hft_data is not None:
-        st.subheader("Venn Diagram: Volume vs Volatility")
-        plot_venn(hft_data)
-
-        st.subheader("Semi-Circle Chart: Total Volume")
-        plot_semi_circle_chart(hft_data)
-
-# India Map Page
-elif page == "India Map":
-    st.title("Interactive India Map with HFT Attributes")
-
-    hft_data = load_hft_data("AAPL")  # Use an example ticker like 'AAPL'
-    
-    if hft_data is not None:
-        hft_state_data = preprocess_hft_data_for_map(hft_data)
-        plot_india_map(hft_state_data)
