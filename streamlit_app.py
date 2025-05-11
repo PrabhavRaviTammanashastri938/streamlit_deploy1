@@ -325,10 +325,9 @@ elif page == "Check HFT Status":
     if ticker_data.empty:
         st.warning("No data found for the selected company.")
     else:
-        # Prepare necessary columns
         hft_df = ticker_data.copy()
         hft_df['Volatility'] = hft_df['High'] - hft_df['Low']
-        hft_df['RSI'] = (100 - (100 / (1 + hft_df['Close'].pct_change().rolling(14).mean())))  # Approx RSI
+        hft_df['RSI'] = (100 - (100 / (1 + hft_df['Close'].pct_change().rolling(14).mean())))
         hft_df['Price_Change'] = hft_df['Close'].diff()
 
         result = is_suitable_for_hft(hft_df)
@@ -339,7 +338,33 @@ elif page == "Check HFT Status":
             st.error("No, not suitable for HFT ❌")
 
         st.markdown("### Last 5 Days Used for Evaluation")
-        st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
+        recent_metrics = hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']]
+        st.dataframe(recent_metrics)
+
+        # AI explanation block
+        avg_metrics = recent_metrics.mean().round(2).to_dict()
+        prompt = (
+            f"Explain whether a stock is suitable for high-frequency trading (HFT) based on these average metrics "
+            f"from the last 5 days:\n\n"
+            f"- Average Volume: {avg_metrics['Volume']}\n"
+            f"- Average Volatility: {avg_metrics['Volatility']}\n"
+            f"- Average RSI: {avg_metrics['RSI']}\n"
+            f"- Average Price Change: {avg_metrics['Price_Change']}\n\n"
+            f"Explain what each metric means and how it contributes to HFT suitability."
+        )
+
+        with st.spinner("Analyzing with AI..."):
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a financial analyst AI that explains stock metrics clearly."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            explanation = response.choices[0].message.content
+
+        st.markdown("### AI-Powered Explanation")
+        st.markdown(explanation)
 
 elif page == "Chatbot":
     import openai
