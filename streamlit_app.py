@@ -8,6 +8,9 @@ import plotly.graph_objects as go
 from matplotlib_venn import venn2
 import json
 import geopandas as gpd
+import openai
+
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Load data
 @st.cache_data
