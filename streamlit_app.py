@@ -52,6 +52,27 @@ def is_suitable_for_hft(hft_data):
         return "Yes"
     return "No"
 
+def get_hft_explanation(avg_volume, avg_volatility, avg_rsi, avg_price_change, avg_momentum, suitability):
+    prompt = f"""
+    The following are the computed metrics for High-Frequency Trading (HFT) Suitability:
+
+    - **Average Volume:** {avg_volume}
+    - **Average Volatility:** {avg_volatility}
+    - **Average RSI:** {avg_rsi}
+    - **Average Price Change:** {avg_price_change}
+
+    The stock is determined to be **{'suitable' if suitability == 'Yes' else 'not suitable'}** for High-Frequency Trading.
+
+    Please provide an explanation of these factors, their importance, and why the stock is or isn't suitable for HFT.
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo-0125",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return response.choices[0].message.content 
+
 # Available tickers
 available_tickers = [
     'MMM', 'AXP', 'AAPL', 'BA', 'CAT', 'CVX', 'CSCO', 'KO', 'DIS', 'XOM', 'GE',
@@ -339,6 +360,13 @@ elif page == "Check HFT Status":
 
         st.markdown("### Last 5 Days Used for Evaluation")
         st.dataframe(hft_df.tail(5)[['Volume', 'Volatility', 'RSI', 'Price_Change']])
+
+        with st.spinner("Analyzing with AI..."):
+            ai_explanation = get_hft_explanation(avg_volume, avg_volatility, avg_rsi, avg_price_change,  suitability)
+
+        # Display AI-generated explanation
+        st.subheader("AI-Powered Explanation")
+        st.write(ai_explanation)
 
 elif page == "Chatbot":
     import openai
