@@ -240,7 +240,7 @@ elif page == "Chatbot":
     st.title("📢 Ask the Stock Chatbot")
 
     # Initialize OpenAI client with API key
-    client = openai.OpenAI(api_key=st.secrets["openai_api_key"])
+    openai.api_key = st.secrets["openai_api_key"]
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -260,7 +260,7 @@ elif page == "Chatbot":
 
         # Generate response from the model
         with st.spinner("Thinking..."):
-            response = openai.ChatCompletion.create(
+            response = openai.Completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant with expertise in stock trading and high-frequency trading."},
@@ -274,4 +274,5 @@ elif page == "Chatbot":
 
         with st.chat_message("assistant"):
             st.markdown(bot_response)
+
 
